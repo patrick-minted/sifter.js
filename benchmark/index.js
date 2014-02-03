@@ -38,6 +38,26 @@ var time_baseline = measure_time(function() {
 	}
 });
 
+/**
+ * Takes an object and wraps it in an object to access the properties using
+ * a get() function.
+ *
+ * @param {Object} obj The Object to wrap.
+ */
+function AccessorAdapter(obj) {
+  var attr;
+  this.attributes = obj;
+  for  (attr in obj) {
+    if (obj.hasOwnProperty(attr)) {
+      this[attr] = obj[attr];
+    }
+  }
+};
+
+AccessorAdapter.prototype.get = function(attr) {
+  return this.attributes[attr];
+};
+
 // create corpus (search set)
 var corpus = (function() {
 	var lines, i, n, items;
@@ -47,14 +67,14 @@ var corpus = (function() {
 
 	items = [];
 	for (i = 0, n = Math.floor(lines.length / 5); i < n; i++) {
-		items.push({
+		items.push(new AccessorAdapter({
 			a: lines[i*5],
 			b: lines[i*5+1],
 			c: lines[i*5+2],
 			d: lines[i*5+3],
 			e: lines[i*5+4],
 			index: i
-		});
+		}));
 	}
 
 	return items;
