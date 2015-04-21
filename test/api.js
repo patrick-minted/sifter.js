@@ -70,22 +70,22 @@ describe('Sifter', function() {
 			var score, search, sifter = new Sifter([]);
 
 			score = sifter.getScoreFunction('one two', {fields: ['a','b'], conjunction: 'and'});
-			assert.equal(score({a: 'one'}) > 0, false);
-			assert.equal(score({a: 'one', b: 'two'}) > 0, true);
-			assert.equal(score({a: 'one', b: 'one'}) > 0, false);
-			assert.equal(score({a: 'one', b: 'three'}) > 0, false);
-			assert.equal(score({a: 'three', b: 'three'}) > 0, false);
+			assert.equal(score(new AccessorAdapter({a: 'one'})) > 0, false);
+			assert.equal(score(new AccessorAdapter({a: 'one', b: 'two'})) > 0, true);
+			assert.equal(score(new AccessorAdapter({a: 'one', b: 'one'})) > 0, false);
+			assert.equal(score(new AccessorAdapter({a: 'one', b: 'three'})) > 0, false);
+			assert.equal(score(new AccessorAdapter({a: 'three', b: 'three'})) > 0, false);
 		});
 
 		it('should acknowledge OR "conjunction" option', function() {
 			var score, search, sifter = new Sifter([]);
 
 			score = sifter.getScoreFunction('one two', {fields: ['a','b'], conjunction: 'or'});
-			assert.equal(score({a: 'one'}) > 0, true);
-			assert.equal(score({a: 'one', b: 'two'}) > 0, true);
-			assert.equal(score({a: 'one', b: 'one'}) > 0, true);
-			assert.equal(score({a: 'one', b: 'three'}) > 0, true);
-			assert.equal(score({a: 'three', b: 'three'}) > 0, false);
+			assert.equal(score(new AccessorAdapter({a: 'one'})) > 0, true);
+			assert.equal(score(new AccessorAdapter({a: 'one', b: 'two'})) > 0, true);
+			assert.equal(score(new AccessorAdapter({a: 'one', b: 'one'})) > 0, true);
+			assert.equal(score(new AccessorAdapter({a: 'one', b: 'three'})) > 0, true);
+			assert.equal(score(new AccessorAdapter({a: 'three', b: 'three'})) > 0, false);
 		});
 
 		describe('with query and options', function() {
@@ -94,9 +94,9 @@ describe('Sifter', function() {
 				var score, search, sifter = new Sifter([]);
 
 				score = sifter.getScoreFunction('test', {fields: ['a','b']});
-				assert.equal(typeof score({a: 'test'}), 'number');
-				assert.equal(score({a: 'test'}) > 0, true);
-				assert.equal(typeof score({}), 'number');
+				assert.equal(typeof score(new AccessorAdapter({a: 'test'})), 'number');
+				assert.equal(score(new AccessorAdapter({a: 'test'})) > 0, true);
+				assert.equal(typeof score(new AccessorAdapter({})), 'number');
 			});
 
 		});
@@ -108,9 +108,9 @@ describe('Sifter', function() {
 
 				search = sifter.prepareSearch('test', {fields: ['a','b']});
 				score = sifter.getScoreFunction(search);
-				assert.equal(typeof score({a: 'test'}), 'number');
-				assert.equal(score({a: 'test'}) > 0, true);
-				assert.equal(typeof score({}), 'number');
+				assert.equal(typeof score(new AccessorAdapter({a: 'test'})), 'number');
+				assert.equal(score(new AccessorAdapter({a: 'test'})) > 0, true);
+				assert.equal(typeof score(new AccessorAdapter({})), 'number');
 			});
 
 		});
@@ -159,13 +159,15 @@ describe('Sifter', function() {
 
 		it('should not throw if an element does not contain search field', function() {
 			assert.doesNotThrow(function() {
-				var sifter = new Sifter([{field: 'a'}, {}]);
+				var sifter = new Sifter([new AccessorAdapter({field: 'a'}),
+                                 new AccessorAdapter({})]);
 				var result = sifter.search('hello', {fields: ['field']});
 			});
 		});
 
 		it('should allow "fields" option to be a string', function() {
-			var sifter = new Sifter([{field: 'a'}, {}]);
+      var sifter = new Sifter([new AccessorAdapter({field: 'a'}),
+                               new AccessorAdapter({})]);
 			var result = sifter.search('a', {fields: 'field'});
 			assert.equal(result.items[0].id, 0);
 		});
@@ -173,9 +175,9 @@ describe('Sifter', function() {
 		describe('sorting', function() {
 			it('should respect "sort_empty" option when query absent', function() {
 				var sifter = new Sifter([
-					{field: 'aaa'},
-					{field: 'add'},
-					{field: 'abb'}
+					new AccessorAdapter({field: 'aaa'}),
+					new AccessorAdapter({field: 'add'}),
+					new AccessorAdapter({field: 'abb'})
 				]);
 				var result = sifter.search('', {
 					fields: 'field',
@@ -188,9 +190,9 @@ describe('Sifter', function() {
 			});
 			it('should work with one field (as object)', function() {
 				var sifter = new Sifter([
-					{field: 'aaa'},
-					{field: 'add'},
-					{field: 'abb'}
+					new AccessorAdapter({field: 'aaa'}),
+					new AccessorAdapter({field: 'add'}),
+					new AccessorAdapter({field: 'abb'})
 				]);
 				var result = sifter.search('', {
 					fields: 'field',
@@ -202,9 +204,9 @@ describe('Sifter', function() {
 			});
 			it('should work with one field (as array)', function() {
 				var sifter = new Sifter([
-					{field: 'aaa'},
-					{field: 'add'},
-					{field: 'abb'}
+					new AccessorAdapter({field: 'aaa'}),
+					new AccessorAdapter({field: 'add'}),
+					new AccessorAdapter({field: 'abb'})
 				]);
 				var result = sifter.search('', {
 					fields: 'field',
@@ -216,10 +218,10 @@ describe('Sifter', function() {
 			});
 			it('should work with multiple fields and respect priority', function() {
 				var sifter = new Sifter([
-					{a: 'bbb', b: 'bbb'},
-					{a: 'bbb', b: 'ccc'},
-					{a: 'bbb', b: 'aaa'},
-					{a: 'aaa'}
+					new AccessorAdapter({a: 'bbb', b: 'bbb'}),
+					new AccessorAdapter({a: 'bbb', b: 'ccc'}),
+					new AccessorAdapter({a: 'bbb', b: 'aaa'}),
+					new AccessorAdapter({a: 'aaa'})
 				]);
 				var result = sifter.search('', {
 					fields: 'field',
@@ -235,10 +237,10 @@ describe('Sifter', function() {
 			});
 			it('should respect numeric fields', function() {
 				var sifter = new Sifter([
-					{field: 1.0},
-					{field: 12.9},
-					{field: 9.1},
-					{field: -9.0}
+					new AccessorAdapter({field: 1.0}),
+					new AccessorAdapter({field: 12.9}),
+					new AccessorAdapter({field: 9.1}),
+					new AccessorAdapter({field: -9.0})
 				]);
 				var result = sifter.search('', {
 					fields: 'field',
@@ -251,10 +253,10 @@ describe('Sifter', function() {
 			});
 			it('should respect sort direction', function() {
 				var sifter = new Sifter([
-					{a: 'bbb', b: 'rrr'},
-					{a: 'bbb', b: 'aaa'},
-					{a: 'aaa', b: 'rrr'},
-					{a: 'aaa', b: 'aaa'}
+					new AccessorAdapter({a: 'bbb', b: 'rrr'}),
+					new AccessorAdapter({a: 'bbb', b: 'aaa'}),
+					new AccessorAdapter({a: 'aaa', b: 'rrr'}),
+					new AccessorAdapter({a: 'aaa', b: 'aaa'})
 				]);
 				var result = sifter.search('', {
 					fields: 'field',
@@ -270,8 +272,8 @@ describe('Sifter', function() {
 			});
 			it('should add implicit "$score" field when query present', function() {
 				var sifter = new Sifter([
-					{field: 'yoo'},
-					{field: 'book'}
+					new AccessorAdapter({field: 'yoo'}),
+					new AccessorAdapter({field: 'book'})
 				]);
 				var result = sifter.search('oo', {
 					fields: 'field',
@@ -282,9 +284,9 @@ describe('Sifter', function() {
 			});
 			it('should not add implicit "$score" field if explicitly given', function() {
 				var sifter = new Sifter([
-					{field: 'boooo'},
-					{field: 'yoo'},
-					{field: 'aaa'}
+					new AccessorAdapter({field: 'boooo'}),
+					new AccessorAdapter({field: 'yoo'}),
+					new AccessorAdapter({field: 'aaa'})
 				]);
 				var result = sifter.search('oo', {
 					filter: false,
@@ -297,8 +299,8 @@ describe('Sifter', function() {
 			});
 			it('should be locale-aware', function() {
 				var sifter = new Sifter([
-					{field: 'Zoom Test'},
-					{field: 'Água Test'}
+					new AccessorAdapter({field: 'Zoom Test'}),
+					new AccessorAdapter({field: 'Água Test'})
 				]);
 				var result = sifter.search('', {
 					fields: 'field',
@@ -314,11 +316,11 @@ describe('Sifter', function() {
 
 			before(function() {
 				sifter = new Sifter([
-					{title: 'Matterhorn', location: 'Switzerland', continent: 'Europe'},
-					{title: 'Eiger', location: 'Switzerland', continent: 'Europe'},
-					{title: 'Everest', location: 'Nepal', continent: 'Asia'},
-					{title: 'Gannett', location: 'Wyoming', continent: 'North America'},
-					{title: 'Denali', location: 'Alaska', continent: 'North America'}
+					new AccessorAdapter({title: 'Matterhorn', location: 'Switzerland', continent: 'Europe'}),
+					new AccessorAdapter({title: 'Eiger', location: 'Switzerland', continent: 'Europe'}),
+					new AccessorAdapter({title: 'Everest', location: 'Nepal', continent: 'Asia'}),
+					new AccessorAdapter({title: 'Gannett', location: 'Wyoming', continent: 'North America'}),
+					new AccessorAdapter({title: 'Denali', location: 'Alaska', continent: 'North America'})
 				]);
 
 				options      = {limit: 1, fields: ['title', 'location', 'continent']};
@@ -332,11 +334,11 @@ describe('Sifter', function() {
 
 			it('should not vary when using an array vs a hash as a data source', function() {
 				var sifter_hash = new Sifter({
-					'a': {title: 'Matterhorn', location: 'Switzerland', continent: 'Europe'},
-					'b': {title: 'Eiger', location: 'Switzerland', continent: 'Europe'},
-					'c': {title: 'Everest', location: 'Nepal', continent: 'Asia'},
-					'd': {title: 'Gannett', location: 'Wyoming', continent: 'North America'},
-					'e': {title: 'Denali', location: 'Alaska', continent: 'North America'}
+					'a': new AccessorAdapter({title: 'Matterhorn', location: 'Switzerland', continent: 'Europe'}),
+					'b': new AccessorAdapter({title: 'Eiger', location: 'Switzerland', continent: 'Europe'}),
+					'c': new AccessorAdapter({title: 'Everest', location: 'Nepal', continent: 'Asia'}),
+					'd': new AccessorAdapter({title: 'Gannett', location: 'Wyoming', continent: 'North America'}),
+					'e': new AccessorAdapter({title: 'Denali', location: 'Alaska', continent: 'North America'})
 				});
 				var result_hash = sifter.search('switzerland europe', options);
 				assert.deepEqual(result_hash, result);
@@ -454,3 +456,23 @@ describe('Sifter', function() {
 
 	});
 });
+
+/**
+ * Takes an object and wraps it in an object to access the properties using
+ * a get() function.
+ *
+ * @param {Object} obj The Object to wrap.
+ */
+function AccessorAdapter(obj) {
+  var attr;
+  this.attributes = obj;
+  for  (attr in obj) {
+    if (obj.hasOwnProperty(attr)) {
+      this[attr] = obj[attr];
+    }
+  }
+};
+
+AccessorAdapter.prototype.get = function(attr) {
+  return this.attributes[attr];
+};

@@ -12,6 +12,9 @@
  * governing permissions and limitations under the License.
  *
  * @author Brian Reavis <brian@thirdroute.com>
+ *
+ * This code was changed for a Minted implementation. Please see:
+ * https://wiki.minted.com/index.php/Recipient_Addressing_2013#Searcher
  */
 
 (function(root, factory) {
@@ -157,12 +160,12 @@
 			}
 			if (field_count === 1) {
 				return function(token, data) {
-					return scoreValue(data[fields[0]], token);
+					return scoreValue(data.get(fields[0]), token);
 				};
 			}
 			return function(token, data) {
 				for (var i = 0, sum = 0; i < field_count; i++) {
-					sum += scoreValue(data[fields[i]], token);
+					sum += scoreValue(data.get(fields[i]), token);
 				}
 				return sum / field_count;
 			};
@@ -223,7 +226,7 @@
 		 */
 		get_field = function(name, result) {
 			if (name === '$score') return result.score;
-			return self.items[result.id][name];
+			return self.items[result.id].get(name);
 		};
 
 		// parse options
@@ -363,12 +366,12 @@
 			self.iterator(self.items, function(item, id) {
 				score = fn_score(item);
 				if (options.filter === false || score > 0) {
-					search.items.push({'score': score, 'id': id});
+					search.items.push({'score': score, 'id': id, item: item});
 				}
 			});
 		} else {
 			self.iterator(self.items, function(item, id) {
-				search.items.push({'score': 1, 'id': id});
+				search.items.push({'score': 1, 'id': id, item: item});
 			});
 		}
 
